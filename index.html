@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        #chat-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .chat-message {
+            margin: 5px 0;
+        }
+        .user-message {
+            color: blue;
+        }
+        .bot-message {
+            color: green;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        #meal-suggestions {
+            padding: 10px;
+            background-color: #f0f8ff;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Assistent</h1>
+
+    <!-- Chat -->
+    <div id="chat-container"></div>
+    <button id="start-microphone">Start Microfoon</button>
+
+    <!-- Leerplanner -->
+    <h2>Leerplanner</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Dag</th>
+                <th>Nederlands</th>
+                <th>History</th>
+                <th>Duits</th>
+                <th>Frans</th>
+                <th>Engels</th>
+                <th>Geography</th>
+                <th>Wiskunde</th>
+                <th>Filosofie</th>
+                <th>Muziek</th>
+                <th>Economie</th>
+                <th>BSM</th>
+                <th>Bedrijfs Economie</th>
+                <th>Biologie</th>
+                <th>Science Physics</th>
+            </tr>
+        </thead>
+        <tbody id="planning-table-body">
+            <tr>
+                <td>Maandag</td>
+                <td data-subject="nederlands"></td>
+                <td data-subject="history"></td>
+                <td data-subject="duits"></td>
+                <td data-subject="frans"></td>
+                <td data-subject="engels"></td>
+                <td data-subject="geography"></td>
+                <td data-subject="wiskunde"></td>
+                <td data-subject="filosofie"></td>
+                <td data-subject="muziek"></td>
+                <td data-subject="economie"></td>
+                <td data-subject="bsm"></td>
+                <td data-subject="bedrijfs economie"></td>
+                <td data-subject="biologie"></td>
+                <td data-subject="science physics"></td>
+            </tr>
+            <!-- Voeg meer rijen toe voor andere dagen -->
+        </tbody>
+    </table>
+
+    <!-- Maaltijdsuggesties -->
+    <h2>Maaltijdsuggesties</h2>
+    <div id="meal-suggestions">Maaltijdsuggesties worden hier weergegeven.</div>
+
+    <!-- JavaScript -->
+    <script>
+        // HTML-elementen
+        const chatContainer = document.getElementById("chat-container");
+        const plannerTable = document.getElementById("planning-table-body");
+        const mealSuggestionsContainer = document.getElementById("meal-suggestions");
+        let recognition;
+
+        // Spraakherkenning instellen
+        if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = "nl-NL";
+            recognition.interimResults = false;
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                addMessage(`Gebruiker: ${transcript}`, "user-message");
+
+                if (transcript.startsWith("hey c-search")) {
+                    const command = transcript.replace("hey c-search", "").trim();
+                    handleCommand(command);
+                } else {
+                    addMessage("Ik reageer alleen op 'Hey C-search'.", "bot-message");
+                }
+            };
+
+            recognition.onerror = function(event) {
+                addMessage("Fout bij spraakherkenning: " + event.error, "bot-message");
+            };
+        } else {
+            alert("Spraakherkenning wordt niet ondersteund door deze browser.");
+        }
+
+        function startListening() {
+            if (recognition) recognition.start();
+        }
+
+        // Commandohandler
+        function handleCommand(command) {
+            if (command.includes("wat eten we")) {
+                askMealQuestions();
+            } else if (command.startsWith("zet op")) {
+                handlePlanningCommand(command);
+            } else {
+                addMessage("Onbekend commando.", "bot-message");
+            }
+        }
+
+        // Chatbericht toevoegen
+        function addMessage(text, className) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `chat-message ${className}`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Leerplanner
+        function handlePlanningCommand(command) {
+            // TODO: Verwerk de opdracht voor de planner
+            addMessage("Planning toegevoegd: " + command, "bot-message");
+        }
+
+        // Maaltijdvragen
+        function askMealQuestions() {
+            const time = prompt("Hoeveel tijd heb je?");
+            const cost = prompt("Hoeveel mag het kosten?");
+            const type = prompt("Wat wil je eten (pasta, rijst, vegetarisch, etc.)?");
+            addMessage(`Maaltijdsuggestie wordt opgezocht voor tijd: ${time}, kosten: ${cost}, type: ${type}.`, "bot-message");
+        }
+
+        // Eventlistener
+        document.getElementById("start-microphone").addEventListener("click", startListening);
+    </script>
+</body>
+</html>
